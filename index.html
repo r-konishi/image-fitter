@@ -19,7 +19,9 @@
 
     <main class="page">
       <section class="panel">
-        <h2>設定</h2>
+        <div class="section-heading">
+          <h2>設定</h2>
+        </div>
 
         <form class="controls" id="image-form">
           <label class="field field-file">
@@ -65,6 +67,33 @@
             <strong id="main-scale-value">100%</strong>
           </label>
 
+          <div class="control-group">
+            <label class="field">
+              <span>出力画像形式</span>
+              <select id="output-format">
+                <option value="image/png">PNG</option>
+                <option value="image/jpeg">JPEG</option>
+                <option value="image/webp">WebP</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>品質設定</span>
+              <input
+                id="output-quality"
+                type="range"
+                min="10"
+                max="100"
+                step="1"
+                value="80"
+                disabled
+              />
+              <div class="field-meta">
+                <strong id="output-quality-value">PNG では未使用</strong>
+              </div>
+            </label>
+          </div>
+
           <div class="inline-actions">
             <label class="toggle">
               <input id="live-generate" type="checkbox" />
@@ -73,34 +102,20 @@
             <button type="submit" id="generate-button">プレビュー</button>
           </div>
 
-          <label class="field">
-            <span>出力画像形式</span>
-            <select id="output-format">
-              <option value="image/png">PNG</option>
-              <option value="image/jpeg">JPEG</option>
-              <option value="image/webp">WebP</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>品質設定</span>
-            <input
-              id="output-quality"
-              type="range"
-              min="10"
-              max="100"
-              step="1"
-              value="92"
-              disabled
-            />
-            <strong id="output-quality-value">PNG では未使用</strong>
-          </label>
+          <div class="output-size-row">
+            <span class="output-size-label">出力画像サイズ（予想）:</span>
+            <strong id="output-size-value">--</strong>
+          </div>
 
           <div class="actions actions-single">
             <button type="button" id="download-button" disabled>
               ダウンロード
             </button>
           </div>
+
+          <p class="download-note is-hidden" id="download-note" aria-hidden="true">
+            ※ プレビューを実行してください
+          </p>
         </form>
 
         <p class="hint" id="status-message">

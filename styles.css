@@ -38,17 +38,16 @@ body {
 }
 
 .site-header h1,
-.page {
-  margin: 0 auto;
-}
-
-.site-header h1,
 .preview-card h2 {
   margin: 0;
 }
 
+.page {
+  margin: 0 auto;
+}
+
 .panel h2 {
-  margin-top: 0;
+  margin: 0;
 }
 
 .page {
@@ -72,6 +71,10 @@ body {
   padding: 24px;
 }
 
+.section-heading {
+  margin-bottom: 18px;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--accent-dark);
@@ -92,9 +95,23 @@ body {
   gap: 18px;
 }
 
+.control-group {
+  display: grid;
+  gap: 18px;
+}
+
 .field {
   display: grid;
   gap: 10px;
+}
+
+.field-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .field span {
@@ -117,6 +134,12 @@ body {
 .field input[type="range"] {
   width: 100%;
   accent-color: var(--accent);
+}
+
+.field input:disabled,
+.field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .field-file input {
@@ -149,6 +172,14 @@ body {
   flex-wrap: wrap;
 }
 
+.output-size-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: var(--muted);
+}
+
 .actions {
   display: flex;
   gap: 12px;
@@ -158,6 +189,18 @@ body {
 .actions-single button {
   width: 100%;
   justify-content: center;
+}
+
+.download-note {
+  margin: -8px 0 0;
+  min-height: 1.6em;
+  color: #b0442e;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.download-note.is-hidden {
+  visibility: hidden;
 }
 
 button {
@@ -197,6 +240,11 @@ button:disabled {
   color: var(--text);
 }
 
+#output-size-value {
+  text-align: right;
+  white-space: nowrap;
+}
+
 .preview-panel {
   min-width: 0;
 }
@@ -234,5 +282,10 @@ button:disabled {
 
   .inline-actions {
     align-items: stretch;
+  }
+
+  .field-meta {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

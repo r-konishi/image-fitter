@@ -74,6 +74,13 @@ const outputQualityInput = document.getElementById("output-quality");
 const outputQualityValue = document.getElementById("output-quality-value");
 
 /**
+ * 現在の出力画像サイズを文字列として画面表示する要素です。
+ *
+ * @type {HTMLElement}
+ */
+const outputSizeValue = document.getElementById("output-size-value");
+
+/**
  * ライブ生成を有効化するチェックボックスです。
  *
  * @type {HTMLInputElement}
@@ -100,6 +107,13 @@ const generateButton = document.getElementById("generate-button");
  * @type {HTMLButtonElement}
  */
 const downloadButton = document.getElementById("download-button");
+
+/**
+ * ダウンロード前にプレビュー実行が必要であることを示す注釈です。
+ *
+ * @type {HTMLElement}
+ */
+const downloadNote = document.getElementById("download-note");
 
 /**
  * 生成結果のプレビューと最終画像の描画先になる `canvas` 要素です。
@@ -145,6 +159,7 @@ let outputDataUrl = "";
  */
 blurAmountInput.addEventListener("input", () => {
   blurValue.textContent = `${blurAmountInput.value}%`;
+  markPreviewStale();
   generateIfLive();
 });
 
@@ -154,6 +169,7 @@ blurAmountInput.addEventListener("input", () => {
  */
 mainScaleInput.addEventListener("input", () => {
   mainScaleValue.textContent = `${mainScaleInput.value}%`;
+  markPreviewStale();
   generateIfLive();
 });
 
@@ -163,6 +179,7 @@ mainScaleInput.addEventListener("input", () => {
  */
 outputQualityInput.addEventListener("input", () => {
   syncQualityUI();
+  markPreviewStale();
   generateIfLive();
 });
 
@@ -172,6 +189,7 @@ outputQualityInput.addEventListener("input", () => {
  */
 outputFormatSelect.addEventListener("change", () => {
   syncQualityUI();
+  markPreviewStale();
   generateIfLive();
 });
 
@@ -180,6 +198,7 @@ outputFormatSelect.addEventListener("change", () => {
  * ライブ生成が有効なら即座に再描画します。
  */
 squareSizeInput.addEventListener("input", () => {
+  markPreviewStale();
   generateIfLive();
 });
 
@@ -204,8 +223,7 @@ imageInput.addEventListener("change", async (event) => {
 
   if (!file) {
     currentImage = null;
-    outputDataUrl = "";
-    downloadButton.disabled = true;
+    markPreviewStale();
     updateStatus("画像ファイルが未選択です。");
     clearCanvasPreview();
     return;
@@ -213,8 +231,7 @@ imageInput.addEventListener("change", async (event) => {
 
   try {
     currentImage = await loadImage(file);
-    outputDataUrl = "";
-    downloadButton.disabled = true;
+    markPreviewStale();
     updateStatus(
       `画像を読み込みました: ${currentImage.naturalWidth} x ${currentImage.naturalHeight}`
     );
@@ -222,8 +239,7 @@ imageInput.addEventListener("change", async (event) => {
     generateIfLive();
   } catch (error) {
     currentImage = null;
-    outputDataUrl = "";
-    downloadButton.disabled = true;
+    markPreviewStale();
     updateStatus("画像の読み込みに失敗しました。別のファイルを試してください。");
     clearCanvasPreview();
   }
@@ -254,6 +270,7 @@ downloadButton.addEventListener("click", () => {
 
 syncGenerateButtonState();
 syncQualityUI();
+setDownloadState(false, false);
 
 /**
  * 現在のフォーム入力値を基に、正方形画像を 1 枚生成します。
@@ -281,7 +298,8 @@ function generateImage() {
     outputSettings.mimeType,
     outputSettings.quality
   );
-  downloadButton.disabled = false;
+  updateOutputSizeDisplay(outputDataUrl);
+  setDownloadState(true, false);
   updateStatus(
     `生成完了: ${squareSize} x ${squareSize} の${outputSettings.label}画像を作成しました。`
   );
@@ -309,6 +327,33 @@ function syncGenerateButtonState() {
 }
 
 /**
+ * 現在の設定が未プレビュー状態になったことを記録します。
+ *
+ * 既存のダウンロード用データを無効化し、必要に応じて
+ * 「プレビューを実行してください」の注釈を表示します。
+ *
+ * @returns {void}
+ */
+function markPreviewStale() {
+  outputDataUrl = "";
+  updateOutputSizeDisplay("");
+  setDownloadState(false, Boolean(currentImage) && !liveGenerateInput.checked);
+}
+
+/**
+ * ダウンロードボタンの有効状態と注釈表示を切り替えます。
+ *
+ * @param {boolean} canDownload ダウンロードを有効化するかどうかです。
+ * @param {boolean} showNote 注釈を表示するかどうかです。
+ * @returns {void}
+ */
+function setDownloadState(canDownload, showNote) {
+  downloadButton.disabled = !canDownload;
+  downloadNote.classList.toggle("is-hidden", !showNote);
+  downloadNote.setAttribute("aria-hidden", String(!showNote));
+}
+
+/**
  * 出力形式に応じて品質スライダーの有効/無効と表示文言を切り替えます。
  *
  * PNG は品質指定を使わないため無効化し、
@@ -325,6 +370,25 @@ function syncQualityUI() {
 }
 
 /**
+ * 生成済みの Data URL から逆算した画像サイズを画面へ表示します。
+ *
+ * Data URL の Base64 部分の長さから元のバイト数を復元し、
+ * 表示しやすい単位へ整形して出力します。
+ *
+ * @param {string} dataUrl 生成済み画像の Data URL です。空文字列なら未生成扱いです。
+ * @returns {void}
+ */
+function updateOutputSizeDisplay(dataUrl) {
+  if (!dataUrl) {
+    outputSizeValue.textContent = "--";
+    return;
+  }
+
+  const byteSize = calculateDataUrlByteSize(dataUrl);
+  outputSizeValue.textContent = formatByteSize(byteSize);
+}
+
+/**
  * 現在選択されている出力形式と品質を取得します。
  *
  * 品質を使用する形式では `canvas.toDataURL()` に渡す 0 から 1 の値へ変換し、
@@ -337,7 +401,7 @@ function getOutputSettings() {
   const mimeType = outputFormatSelect.value;
   const usesQuality = mimeType === "image/jpeg" || mimeType === "image/webp";
   const quality = usesQuality
-    ? (Number.parseInt(outputQualityInput.value, 10) || 92) / 100
+    ? (Number.parseInt(outputQualityInput.value, 10) || 80) / 100
     : undefined;
   const extensionMap = {
     "image/png": "png",
@@ -357,6 +421,40 @@ function getOutputSettings() {
     extension: extensionMap[mimeType] || "png",
     label: labelMap[mimeType] || "PNG",
   };
+}
+
+/**
+ * Data URL の Base64 部分から元データのおおよそのバイト数を計算します。
+ *
+ * Base64 では 4 文字で 3 バイトを表現するため、その対応関係と
+ * 末尾のパディング数を使って元のサイズへ戻します。
+ *
+ * @param {string} dataUrl 画像データを表す Data URL です。
+ * @returns {number} 逆算したバイト数です。
+ */
+function calculateDataUrlByteSize(dataUrl) {
+  const [, base64Data = ""] = dataUrl.split(",");
+  const paddingLength = (base64Data.match(/=+$/) || [""])[0].length;
+
+  return (base64Data.length * 3) / 4 - paddingLength;
+}
+
+/**
+ * バイト数を人間が読みやすい KB / MB 表記へ整形します。
+ *
+ * @param {number} byteSize バイト数です。
+ * @returns {string} 画面表示用のサイズ文字列です。
+ */
+function formatByteSize(byteSize) {
+  if (byteSize < 1024) {
+    return `${byteSize} B`;
+  }
+
+  if (byteSize < 1024 * 1024) {
+    return `${(byteSize / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(byteSize / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 /**
