@@ -27,10 +27,33 @@ body {
     linear-gradient(135deg, #f8f3eb 0%, #efe0cf 100%);
 }
 
-.page {
+.site-header {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 32px 0 48px;
+  padding: 32px 0 8px;
+}
+
+.site-header__inner {
+  padding: 8px 4px 0;
+}
+
+.site-header h1,
+.page {
+  margin: 0 auto;
+}
+
+.site-header h1,
+.preview-card h2 {
+  margin: 0;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.page {
+  width: min(1120px, calc(100% - 32px));
+  padding: 16px 0 48px;
   display: grid;
   grid-template-columns: minmax(320px, 420px) minmax(320px, 1fr);
   gap: 24px;
@@ -46,12 +69,7 @@ body {
 }
 
 .panel {
-  padding: 28px;
-}
-
-.hero h1,
-.preview-card h2 {
-  margin: 0;
+  padding: 24px;
 }
 
 .eyebrow {
@@ -72,7 +90,6 @@ body {
 .controls {
   display: grid;
   gap: 18px;
-  margin-top: 28px;
 }
 
 .field {
@@ -86,7 +103,8 @@ body {
 }
 
 .field input[type="number"],
-.field input[type="file"] {
+.field input[type="file"],
+.field select {
   width: 100%;
   padding: 14px 16px;
   border-radius: 16px;
@@ -113,6 +131,7 @@ body {
   font-weight: 700;
   color: var(--text);
   cursor: pointer;
+  flex-wrap: wrap;
 }
 
 .toggle input {
@@ -122,10 +141,23 @@ body {
   cursor: pointer;
 }
 
+.inline-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.actions-single button {
+  width: 100%;
+  justify-content: center;
 }
 
 button {
@@ -186,12 +218,21 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  .site-header {
+    padding: 24px 0 4px;
+  }
+
   .page {
     grid-template-columns: 1fr;
+    padding-top: 12px;
   }
 
   .panel,
   .preview-card {
     padding: 22px;
+  }
+
+  .inline-actions {
+    align-items: stretch;
   }
 }

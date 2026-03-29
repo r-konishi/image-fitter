@@ -7,17 +7,26 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <p class="eyebrow">Canvas Image Tool</p>
+        <h1>画像を正方形に整える</h1>
+        <p class="lead">
+          背景をぼかして敷き、元画像を中央に収めた正方形画像を生成します。
+        </p>
+      </div>
+    </header>
+
     <main class="page">
       <section class="panel">
-        <div class="hero">
-          <p class="eyebrow">Canvas Image Tool</p>
-          <h1>画像を正方形に整える</h1>
-          <p class="lead">
-            背景をぼかして敷き、元画像を中央に収めた正方形画像を生成します。
-          </p>
-        </div>
+        <h2>設定</h2>
 
         <form class="controls" id="image-form">
+          <label class="field field-file">
+            <span>画像ファイル</span>
+            <input id="image-input" type="file" accept="image/*" />
+          </label>
+
           <label class="field">
             <span>正方形サイズ(px)</span>
             <input
@@ -56,18 +65,38 @@
             <strong id="main-scale-value">100%</strong>
           </label>
 
-          <label class="field field-file">
-            <span>画像ファイル</span>
-            <input id="image-input" type="file" accept="image/*" />
+          <div class="inline-actions">
+            <label class="toggle">
+              <input id="live-generate" type="checkbox" />
+              <span>ライブプレビュー</span>
+            </label>
+            <button type="submit" id="generate-button">プレビュー</button>
+          </div>
+
+          <label class="field">
+            <span>出力画像形式</span>
+            <select id="output-format">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+            </select>
           </label>
 
-          <label class="toggle">
-            <input id="live-generate" type="checkbox" />
-            <span>ライブ生成</span>
+          <label class="field">
+            <span>品質設定</span>
+            <input
+              id="output-quality"
+              type="range"
+              min="10"
+              max="100"
+              step="1"
+              value="92"
+              disabled
+            />
+            <strong id="output-quality-value">PNG では未使用</strong>
           </label>
 
-          <div class="actions">
-            <button type="submit" id="generate-button">生成する</button>
+          <div class="actions actions-single">
             <button type="button" id="download-button" disabled>
               ダウンロード
             </button>

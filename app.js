@@ -53,6 +53,27 @@ const mainScaleInput = document.getElementById("main-scale");
 const mainScaleValue = document.getElementById("main-scale-value");
 
 /**
+ * ダウンロード時の出力画像形式を選択するセレクトボックスです。
+ *
+ * @type {HTMLSelectElement}
+ */
+const outputFormatSelect = document.getElementById("output-format");
+
+/**
+ * JPEG / WebP 出力時の品質を指定するレンジ入力です。
+ *
+ * @type {HTMLInputElement}
+ */
+const outputQualityInput = document.getElementById("output-quality");
+
+/**
+ * 現在の品質設定状態を文字列として画面表示する要素です。
+ *
+ * @type {HTMLElement}
+ */
+const outputQualityValue = document.getElementById("output-quality-value");
+
+/**
  * ライブ生成を有効化するチェックボックスです。
  *
  * @type {HTMLInputElement}
@@ -111,7 +132,7 @@ const DEFAULT_PREVIEW_SIZE = 1080;
 let currentImage = null;
 
 /**
- * 直近で生成した PNG 画像の Data URL です。
+ * 直近で生成した画像の Data URL です。
  * ダウンロード時にこの値を利用します。
  *
  * @type {string}
@@ -133,6 +154,24 @@ blurAmountInput.addEventListener("input", () => {
  */
 mainScaleInput.addEventListener("input", () => {
   mainScaleValue.textContent = `${mainScaleInput.value}%`;
+  generateIfLive();
+});
+
+/**
+ * 出力品質が変更されたときに表示テキストを更新し、
+ * ライブ生成が有効なら即座に再エンコードします。
+ */
+outputQualityInput.addEventListener("input", () => {
+  syncQualityUI();
+  generateIfLive();
+});
+
+/**
+ * 出力形式が変更されたときに品質 UI を同期し、
+ * ライブ生成が有効なら即座に再エンコードします。
+ */
+outputFormatSelect.addEventListener("change", () => {
+  syncQualityUI();
   generateIfLive();
 });
 
@@ -199,7 +238,7 @@ form.addEventListener("submit", (event) => {
 });
 
 /**
- * ダウンロードボタン押下時に、生成済み画像を PNG として保存します。
+ * ダウンロードボタン押下時に、生成済み画像を選択形式で保存します。
  */
 downloadButton.addEventListener("click", () => {
   if (!outputDataUrl) {
@@ -214,10 +253,11 @@ downloadButton.addEventListener("click", () => {
 });
 
 syncGenerateButtonState();
+syncQualityUI();
 
 /**
  * 現在のフォーム入力値を基に、正方形画像を 1 枚生成します。
- * ライブ生成時と手動生成時の両方から利用される中核処理です。
+ * 描画後、選択された出力形式と品質で Data URL を作成します。
  *
  * @returns {void}
  */
@@ -234,11 +274,17 @@ function generateImage() {
     ? requestedSize
     : Math.max(currentImage.naturalWidth, currentImage.naturalHeight);
   const blurAmount = convertBlurStrengthToPixels(blurStrength, squareSize);
+  const outputSettings = getOutputSettings();
 
   renderSquareImage(currentImage, squareSize, blurAmount, mainScalePercent);
-  outputDataUrl = previewCanvas.toDataURL("image/png");
+  outputDataUrl = previewCanvas.toDataURL(
+    outputSettings.mimeType,
+    outputSettings.quality
+  );
   downloadButton.disabled = false;
-  updateStatus(`生成完了: ${squareSize} x ${squareSize} の画像を作成しました。`);
+  updateStatus(
+    `生成完了: ${squareSize} x ${squareSize} の${outputSettings.label}画像を作成しました。`
+  );
 }
 
 /**
@@ -260,6 +306,57 @@ function generateIfLive() {
  */
 function syncGenerateButtonState() {
   generateButton.disabled = liveGenerateInput.checked;
+}
+
+/**
+ * 出力形式に応じて品質スライダーの有効/無効と表示文言を切り替えます。
+ *
+ * PNG は品質指定を使わないため無効化し、
+ * JPEG / WebP はパーセンテージ表示で有効化します。
+ *
+ * @returns {void}
+ */
+function syncQualityUI() {
+  const outputSettings = getOutputSettings();
+  outputQualityInput.disabled = !outputSettings.usesQuality;
+  outputQualityValue.textContent = outputSettings.usesQuality
+    ? `${outputQualityInput.value}%`
+    : "PNG では未使用";
+}
+
+/**
+ * 現在選択されている出力形式と品質を取得します。
+ *
+ * 品質を使用する形式では `canvas.toDataURL()` に渡す 0 から 1 の値へ変換し、
+ * PNG では品質未使用として `undefined` を返します。
+ *
+ * @returns {{ mimeType: string, quality: number | undefined, usesQuality: boolean, extension: string, label: string }}
+ * 現在の出力設定です。
+ */
+function getOutputSettings() {
+  const mimeType = outputFormatSelect.value;
+  const usesQuality = mimeType === "image/jpeg" || mimeType === "image/webp";
+  const quality = usesQuality
+    ? (Number.parseInt(outputQualityInput.value, 10) || 92) / 100
+    : undefined;
+  const extensionMap = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+  };
+  const labelMap = {
+    "image/png": "PNG",
+    "image/jpeg": "JPEG",
+    "image/webp": "WebP",
+  };
+
+  return {
+    mimeType,
+    quality,
+    usesQuality,
+    extension: extensionMap[mimeType] || "png",
+    label: labelMap[mimeType] || "PNG",
+  };
 }
 
 /**
@@ -431,5 +528,6 @@ function updateStatus(message) {
  */
 function createDownloadName() {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return `square-image-${timestamp}.png`;
+  const outputSettings = getOutputSettings();
+  return `square-image-${timestamp}.${outputSettings.extension}`;
 }
