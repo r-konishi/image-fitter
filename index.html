@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Fitter</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="panel">
+        <div class="hero">
+          <p class="eyebrow">Canvas Image Tool</p>
+          <h1>画像を正方形に整える</h1>
+          <p class="lead">
+            背景をぼかして敷き、元画像を中央に収めた正方形画像を生成します。
+          </p>
+        </div>
+
+        <form class="controls" id="image-form">
+          <label class="field">
+            <span>正方形サイズ(px)</span>
+            <input
+              id="square-size"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              placeholder="未入力なら長辺を使用"
+            />
+          </label>
+
+          <label class="field">
+            <span>ぼかし強度(%)</span>
+            <input
+              id="blur-amount"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="10"
+            />
+            <strong id="blur-value">10%</strong>
+          </label>
+
+          <label class="field">
+            <span>メイン画像の大きさ(%)</span>
+            <input
+              id="main-scale"
+              type="range"
+              min="50"
+              max="150"
+              step="1"
+              value="100"
+            />
+            <strong id="main-scale-value">100%</strong>
+          </label>
+
+          <label class="field field-file">
+            <span>画像ファイル</span>
+            <input id="image-input" type="file" accept="image/*" />
+          </label>
+
+          <label class="toggle">
+            <input id="live-generate" type="checkbox" />
+            <span>ライブ生成</span>
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="generate-button">生成する</button>
+            <button type="button" id="download-button" disabled>
+              ダウンロード
+            </button>
+          </div>
+        </form>
+
+        <p class="hint" id="status-message">
+          画像を選択すると、ここに処理状況が表示されます。
+        </p>
+      </section>
+
+      <section class="preview-panel">
+        <div class="preview-card">
+          <h2>プレビュー</h2>
+          <canvas id="preview-canvas" width="1080" height="1080"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
